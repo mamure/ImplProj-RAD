@@ -1,52 +1,86 @@
 using System;
+using System.Numerics;
 using System.Collections.Generic;
 
-public class HashTabel {
-    private LinkedList<(ulong, T)>[] buckets;
-    private readonly int size;
-    private IHash hashFunction;
 
-    public HashTabel(int l, Func<ulong, int> hashFunction) {
-        if (l <= 0 || l >= 64) {
-            throw new ArgumentOutOfRangeException(nameof(l))
-        }
-        this.size = 1 << l;
-        this.hashFunction = hashFunction;
-        this.buckets = new LinkedList<(ulong, T)>[1 << l];
+public interface IHash<T> where T : INumber<T> {
+    public int BitLen();
+    public UInt64 Hash(T x);
+}
+
+
+public class HashTable<K, V>
+    where K : INumber<K>
+    where V : INumber<V>
+ {
+    private LinkedList<(K, V)>[] buckets;
+    private IHash<K> hasher;
+
+    public HashTable(IHash<K> hasher) {
+        this.hasher = hasher;
+        this.buckets = new LinkedList<(K, V)>[(UInt64)1 << hasher.BitLen()];
         for (int i = 0; i < buckets.Length; i++) {
-            buckets[i] = new LinkedList<(ulong, T)>();
+            buckets[i] = new LinkedList<(K, V)>();
         }
     }
 
-    public T get(ulong x) {
-        int index = (int)hashFunction.Hash(x);
-        foreach ((ulong key, T value) in buckets[index]) {
-            if (key == x) {
-                return value;
-            }
-        }
-        return default(T);
+    public V? this[K x] {
+        get { return Get(x); }
+        set { Set(x, value!); }
     }
 
-    public long set(ulong x, T v) {
-        int index = (int)hashFunction.Hash(x);
-        for (var node = buckets[index].First; node != null; node = node.Next) {
-            if (node.Value.Item1 == x) {
-                node.Value = (x, v);
-                return;
-            }
+    public V? Get(K x) {
+        UInt64 index = hasher.Hash(x);
+        var node = Find(x, index);
+        if (node != null) {
+            var (_, value) = node.Value;
+            return value;
         }
-        buckets[index].AddLast((x, v));
+        return default(V?);
     }
 
-    public long increment(ulong x, long d) {
-        int index = (int)hashFunction.Hash(x);
-        for (var node = buckets[index].First; node != null; node = node.Next) {
-            if (node.Value.Item1 == x) {
-                node.Value = (x, node.Value.Item2 + d);
-                return;
-            }
+    public void Set(K x, V v) {
+        UInt64 index = hasher.Hash(x);
+        var node = Find(x, index);
+        if (node != null) {
+            var (key, _) = node.Value;
+            node.Value = (key, v);
+        } else {
+            buckets[index].AddLast((x, v));
         }
-        buckets[index].AddLast((x, d));
+    }
+
+    public V? Pop(K x) {
+        UInt64 index = hasher.Hash(x);
+        var node = Find(x, index);
+        if (node != null) {
+            var (_, value) = node.Value;
+            buckets[index].Remove(node);
+            return value;
+        }
+        return default(V?);
+    }
+
+    public void Increment(K x, V d) {
+        UInt64 index = hasher.Hash(x);
+        var node = Find(x, index);
+        if (node != null) {
+            var (key, value) = node.Value;
+            node.Value = (key, value + d);
+        } else {
+            buckets[index].AddLast((x, d));
+        }
+    }
+
+
+    private LinkedListNode<(K, V)>? Find(K x, UInt64 index) {
+        var current = buckets[index].First;
+        while (current != null) {
+            if (current.Value.Item1 == x) {
+                return current;
+            }
+            current = current.Next;
+        }
+        return null;
     }
 }
