@@ -1,13 +1,19 @@
 public class CountSketch {
-    private IHash h;
-    private IHash s;
+    private readonly IHash hashU4;
     private int m;
     private int[] sketch;
-    public CountSketch(IHash h, IHash s) {
-        this.h = h;
-        this.s = s;
-        m = 1 << h.BitLen();
-        this.sketch = new int[m];
+    public CountSketch(IHash hashU4) {
+        this.hashU4 = hashU4;
+        m = 1 << hashU4.BitLen();
+        sketch = new int[m];
+    }
+
+    private ulong h_hash(ulong x) {
+        return hashU4.Hash(x);
+    }
+    private int s_hash(ulong x) {
+        var bx = hashU4.BigHash(x) >> hashU4.BigBitLen();
+        return (int)(1 - 2 * bx);
     }
 
 

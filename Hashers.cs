@@ -5,7 +5,16 @@ using System.Globalization;
 public interface IHash {
     public int BitLen();
     public ulong Hash(ulong x);
+
+    int BigBitLen() {
+        return BitLen();
+    }
+    BigInteger BigHash(ulong x) {
+        return new BigInteger(Hash(x));
+    }
 }
+
+
 
 
 public class MultiplyShiftHash : IHash {
@@ -41,7 +50,7 @@ public class MultiplyModPrime : IHash {
             throw new ArgumentOutOfRangeException(nameof(l));
         }
         this.l = l;
-        mask = ((ulong)1 << l) - 1;
+        mask = (1ul << l) - 1;
         q = 89;
         p = (new BigInteger(1) << q) - 1;
         a = BigInteger.Parse("1BFAB7F9A831C0BBEDD1FAA", NumberStyles.HexNumber);
@@ -50,14 +59,19 @@ public class MultiplyModPrime : IHash {
     public int BitLen() {
         return l;
     }
+    public int BigBitLen() {
+        return q;
+    }
     public ulong Hash(ulong x) {
+        // Select lower l bits
+        return (ulong)(BigHash(x) & mask);
+    }
+    public BigInteger BigHash(ulong x) {
         // a + bx mod p
         var y = a + b*x;
         y = (y & p) + (y >> q);
         if (y >= p) y -= p;
-
-        // Select lower l bits
-        return (ulong)(y & mask);
+        return y;
     }
 }
 
@@ -77,7 +91,7 @@ public class PolynomialModPrime : IHash {
             throw new ArgumentOutOfRangeException(nameof(l));
         }
         this.l = l;
-        mask = ((ulong)1 << l) - 1;
+        mask = (1ul << l) - 1;
         q = 89;
         p = (new BigInteger(1) << q) - 1;
         a = BigInteger.Parse("0826B0099616EA28858AFF6", NumberStyles.HexNumber);
@@ -88,7 +102,14 @@ public class PolynomialModPrime : IHash {
     public int BitLen() {
         return l;
     }
+    public int BigBitLen() {
+        return q;
+    }
     public ulong Hash(ulong x) {
+        // select lower 64 bits
+        return (ulong)(BigHash(x) & mask);
+    }
+    public BigInteger BigHash(ulong x) {
         // y = c + dx mod p
         var y = d * x + c;
         y = (y & p) + (y >> q);
@@ -101,33 +122,7 @@ public class PolynomialModPrime : IHash {
         y = y * x + a;
         y += (y & p) + (y >> q);
         if (y >= p) y -= p;
-        
-        // Select lower l bits
-        return (ulong)(y & mask);
-    }
-}
 
-public class CountSketchHash<T> where T : INumber<T> {
-    private readonly int t;
-    private readonly int b;
-    private readonly int p;
-    private readonly PolynomialModPrime polynomialModPrime;
-
-    public CountSketchHash(int t) {
-        this.t = t;
-        this.b = 89;
-        this.p = (1 << b) - 1;
-        this.polynomialModPrime = new PolynomialModPrime(p);
-    }
-
-    public ulong H(ulong x) {
-        var gx = (polynomialModPrime.Hash(x) & ((1UL << b) - 1));
-        return gx & ((1UL << t) - 1);
-    }
-
-    public int S(ulong x) {
-        var gx = polynomialModPrime.Hash(x);
-        var temp = (double)gx / p;
-        return (int)(1UL - 2 * Math.Floor(temp));
+        return y;
     }
 }
