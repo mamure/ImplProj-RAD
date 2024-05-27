@@ -5,13 +5,13 @@ public class BigRandom() {
     private static Random rng = new();
     public static BigInteger Get(int bits) {
         // Generete 1 extra byte in case of rounding
-        int bytesLen = (bits + 7) / 8;
+        int bytesLen = 1 + bits / 8;
         byte[] bytes = new byte[bytesLen];
         rng.NextBytes(bytes);
-
+        
         // Remove excess bits in the extra byte
         int excessBits = bytesLen * 8 - bits;
-        byte excessMask = (byte)(((byte)excessBits << 1) - 1);
+        byte excessMask = (byte)(0xff >> excessBits);
         bytes[bytesLen - 1] &= excessMask;
 
         return new BigInteger(bytes);
@@ -44,8 +44,7 @@ public class MultiplyShiftHash : IHash {
         }
         this.l = l;
         q = 64;
-        a = (ulong)BigRandom.Get(q - 1); // TODO LOOK AT BIGRANDOM AND MAKE SURE IT STAYS WITHIN BOUNDS
-        // REMOVE THE -1 IF NEEDED
+        a = (ulong)BigRandom.Get(q);
     }
     public int BitLen() {
         return l;
