@@ -69,4 +69,36 @@ public class Benchmark {
             return (timer.ElapsedMilliseconds, (ulong)sum);
         });
     }
+
+    public static void Run_7(int n) {
+        Console.WriteLine($"Evaluating Count-Sketch of datastream (opg 7)");
+        Console.WriteLine($"Evaluating Estimator (opg 7)");
+        Console.WriteLine($"Evaluating MSE over 100 eksperiments (opg 7)");
+        Console.WriteLine($"Evaluating Median over groups (opg 7)");
+        double[] test = {}; // Placeholder
+        double[] Mi = new double[9];
+
+        for (int i = 1; i < 9; i++) {
+            double[] Gi = test.Skip((i - 1) * 11).Take(11).ToArray();
+            Array.Sort(Gi);
+
+            int len = Gi.Length;
+            if (len % 2 == 0) {
+                Mi[i] = (Gi[len / 2 - 1] + Gi[len / 2]) / 2.0;
+            } else {
+                Mi[i] = Gi[len / 2];
+            }
+        }
+        Array.Sort(Mi);
+        double[] x = [1,2,3,4,5,6,7,8,9];
+        double[] y = Mi;
+        for (int i = 1; i < 9; i++) {
+            Console.WriteLine($"{x[i]}, {y[i]}");
+        }
+    }
+
+    public static void Run_8(int n) {
+        Console.WriteLine($"Benchmarking value of m (opg 8)");
+        Console.WriteLine($"Benchmarking value of m in Count-Sketch(opg 8)");
+    }
 }
