@@ -10,7 +10,7 @@ def plot(file, title):
     plt.xlabel('l')
     plt.ylabel('time [s]')
     plt.yscale('log', base=2)
-    plt.title(f'{title} (n={df['n'][0]})')
+    plt.title(f"{title} (n={df['n'][0]})")
     plt.legend()
     plt.grid(True)
     plt.show()
