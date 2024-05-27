@@ -1,46 +1,33 @@
-using System;
-using System.Numerics;
-using System.Collections.Generic;
+public class HashTable {
+    public LinkedList<(ulong, int)>[] buckets;
+    private IHash hasher;
 
-
-public interface IHash<T> where T : INumber<T> {
-    public int BitLen();
-    public UInt64 Hash(T x);
-}
-
-
-public class HashTable<K, V>
-    where K : INumber<K>
-    where V : INumber<V>
- {
-    private LinkedList<(K, V)>[] buckets;
-    private IHash<K> hasher;
-
-    public HashTable(IHash<K> hasher) {
+    public HashTable(IHash hasher) {
         this.hasher = hasher;
-        this.buckets = new LinkedList<(K, V)>[(UInt64)1 << hasher.BitLen()];
+        buckets = new LinkedList<(ulong, int)>[(ulong)1 << hasher.BitLen()];
         for (int i = 0; i < buckets.Length; i++) {
-            buckets[i] = new LinkedList<(K, V)>();
+            buckets[i] = new();
         }
     }
 
-    public V? this[K x] {
+    public int? this[ulong x] {
         get { return Get(x); }
-        set { Set(x, value!); }
+        set { Set(x, (int)value!); }
     }
 
-    public V? Get(K x) {
-        UInt64 index = hasher.Hash(x);
+
+    public int? Get(ulong x) {
+        ulong index = hasher.Hash(x);
         var node = Find(x, index);
         if (node != null) {
             var (_, value) = node.Value;
             return value;
         }
-        return default(V?);
+        return null;
     }
 
-    public void Set(K x, V v) {
-        UInt64 index = hasher.Hash(x);
+    public void Set(ulong x, int v) {
+        ulong index = hasher.Hash(x);
         var node = Find(x, index);
         if (node != null) {
             var (key, _) = node.Value;
@@ -50,19 +37,19 @@ public class HashTable<K, V>
         }
     }
 
-    public V? Pop(K x) {
-        UInt64 index = hasher.Hash(x);
+    public int? Pop(ulong x) {
+        ulong index = hasher.Hash(x);
         var node = Find(x, index);
         if (node != null) {
             var (_, value) = node.Value;
             buckets[index].Remove(node);
             return value;
         }
-        return default(V?);
+        return null;
     }
 
-    public void Increment(K x, V d) {
-        UInt64 index = hasher.Hash(x);
+    public void Increment(ulong x, int d) {
+        ulong index = hasher.Hash(x);
         var node = Find(x, index);
         if (node != null) {
             var (key, value) = node.Value;
@@ -73,7 +60,7 @@ public class HashTable<K, V>
     }
 
 
-    private LinkedListNode<(K, V)>? Find(K x, UInt64 index) {
+    private LinkedListNode<(ulong, int)>? Find(ulong x, ulong index) {
         var current = buckets[index].First;
         while (current != null) {
             if (current.Value.Item1 == x) {

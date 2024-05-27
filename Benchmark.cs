@@ -1,49 +1,72 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 
 
 public class Benchmark {
-    public static List<(string, float, int)> Run(int n, int l) {
-        var benches = new List<(string, IHash<UInt64>)> {
-            ("Multiply Mod Prime", new MultiplyModPrime<UInt64>(l)),
-            ("Multiply Shift Hash", new MultiplyShiftHash<UInt64>(l)),
-        };
+    const int MAX_ITERS = 31;
+    private static void Run(int n, string path, Func<int, IHash, (long?, ulong)> func) {
+        var csv = "l,n,msh,mmp,pmp\n";
+        var store = new List<ulong>();
+        for (int i = 1; i <= MAX_ITERS; i++) {
+            Console.Write($"l = {i}\r");
+            var benches = new List<IHash> {
+                new MultiplyShiftHash(i),
+                new MultiplyModPrime(i),
+                new PolynomialModPrime(i),
+            };
 
-        var store = new List<(string, float, int)>();
-        foreach (var (name, hasher) in benches) {
-            var stream = Generate.CreateStream(n, l);
-            var table = new HashTable<UInt64, int>(hasher);
+            csv += $"{i},{n}";
+            foreach (var hasher in benches) {
+                ulong temp = 0;
+                long? elapsed = null;
+                try {
+                    (elapsed, temp) = func(i, hasher);
+                } catch (Exception) { }
+                
+                if (elapsed == null) {
+                    csv = csv.Substring(0, csv.LastIndexOf("\n"));
+                    i = MAX_ITERS;
+                    break;
+                }
+                var timestr = ((double)elapsed / 1000.0f).ToString(CultureInfo.InvariantCulture);
+                store.Add(temp);
+                csv += $",{timestr}";
+            }
+            csv += "\n";
+        }
+        using (var file = new StreamWriter(path)) {
+            file.Write(csv);
+        }
+        using (var file = new StreamWriter("temp_to_avoid_optim_in_bench.bin")) {
+            file.Write(string.Join(" ", store));
+        }
+    }
+
+    public static void Run_1c(int n) {
+        Console.WriteLine($"Benchmarking sum (opg 1c)");
+        Run(n, "opg_1c.csv", (i, hasher) => {
+            var stream = Generate.CreateStream(n, i);
+            ulong sum = 0;
 
             var timer = Stopwatch.StartNew();
             foreach (var (x, v) in stream) {
-                table.Increment(x, v);
+                sum += hasher.Hash(x);
             }
-            var elapsed = timer.ElapsedMilliseconds;
-            
-            store.Add((name, (float)elapsed / 1000.0f, table[0]));
-        }
-        return store;
+            return (timer.ElapsedMilliseconds, (ulong)sum);
+        });
     }
-    public static void RunSingle(int n, int l) {
-        foreach(var (name, time, _) in Run(n, l)) {
-            Console.WriteLine($"{name}: {time}s");
-        }
-    }
-    public static void RunAll(int n) {
-        for (int i = 1; i <= 24; i++) {
-            try {
-                Console.Write($"{i}");
-                foreach(var (_, time, _) in Run(n, i)) {
-                    var timestr = time.ToString(CultureInfo.InvariantCulture);
-                    Console.Write($",{timestr}");
-                }
-                Console.WriteLine();
-            } catch (System.Exception) {
-                break;
+    public static void Run_3(int n) {
+        Console.WriteLine($"Benchmarking squared sum (opg 3)");
+        Run(n, "opg_3.csv", (i, hasher) => {
+            if ((1 << i) >= n) {
+                return (null, 0);
             }
-        }
+            var stream = Generate.CreateStream(n, i);
+            var table = new HashTable(hasher);
 
+            var timer = Stopwatch.StartNew();
+            var sum = App.SquareSum(stream, table);
+            return (timer.ElapsedMilliseconds, (ulong)sum);
+        });
     }
 }
