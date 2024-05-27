@@ -23,7 +23,7 @@ public class CountSketch {
 
     public void Process(IEnumerable<(ulong, int)> stream){
         foreach (var (x,d) in stream){
-            sketch[h.Hash(x)] += s.Hash(x)*d;
+            sketch[h.Hash(x)] += (int)s.Hash(x)*d;
         }
     }
 
