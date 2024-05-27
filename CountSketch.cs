@@ -25,8 +25,5 @@ public class CountSketch {
         foreach (var (x,d) in stream){
             sketch[h.Hash(x)] += (int)s.Hash(x)*d;
         }
-    }
-
-
-    
+    } 
 }
