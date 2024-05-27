@@ -106,3 +106,28 @@ public class PolynomialModPrime : IHash {
         return (ulong)(y & mask);
     }
 }
+
+public class CountSketchHash<T> where T : INumber<T> {
+    private readonly int t;
+    private readonly int b;
+    private readonly int p;
+    private readonly PolynomialModPrime polynomialModPrime;
+
+    public CountSketchHash(int t) {
+        this.t = t;
+        this.b = 89;
+        this.p = (1 << b) - 1;
+        this.polynomialModPrime = new PolynomialModPrime(p);
+    }
+
+    public ulong H(ulong x) {
+        var gx = (polynomialModPrime.Hash(x) & ((1UL << b) - 1));
+        return gx & ((1UL << t) - 1);
+    }
+
+    public ulong S(ulong x) {
+        var gx = polynomialModPrime.Hash(x);
+        var temp = (double)gx / p;
+        return (ulong)(1UL - 2 * Math.Floor(temp));
+    }
+}
