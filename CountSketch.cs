@@ -19,17 +19,16 @@ public class CountSketch {
         return (int)(1 - 2 * bx);
     }
 
-    public ulong CalculateEstimate(){
+    public void Process(IEnumerable<(ulong, int)> stream){
+        foreach (var (x,d) in stream){
+            sketch[h_hash(x)] += s_hash(x) * d;
+        }
+    }
+    public ulong SquareSum(){
         ulong X = 0;
         for (int y = 0; y < m; y++){
             X += (ulong)sketch[y] * (ulong)sketch[y];
         }
         return X;
     }
-
-    public void Process(IEnumerable<(ulong, int)> stream){
-        foreach (var (x,d) in stream){
-            sketch[h_hash(x)] += s_hash(x) * d;
-        }
-    } 
 }

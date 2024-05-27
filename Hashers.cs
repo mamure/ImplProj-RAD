@@ -44,7 +44,8 @@ public class MultiplyShiftHash : IHash {
         }
         this.l = l;
         q = 64;
-        a = (ulong)BigRandom.Get(q);
+        a = (ulong)BigRandom.Get(q - 1); // TODO LOOK AT BIGRANDOM AND MAKE SURE IT STAYS WITHIN BOUNDS
+        // REMOVE THE -1 IF NEEDED
     }
     public int BitLen() {
         return l;

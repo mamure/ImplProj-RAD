@@ -1,5 +1,5 @@
 public class HashTable {
-    public LinkedList<(ulong, int)>[] buckets;
+    private LinkedList<(ulong, int)>[] buckets;
     private IHash hasher;
 
     public HashTable(IHash hasher) {
@@ -10,11 +10,21 @@ public class HashTable {
         }
     }
 
+    private LinkedListNode<(ulong, int)>? Find(ulong x, ulong index) {
+        var current = buckets[index].First;
+        while (current != null) {
+            if (current.Value.Item1 == x) {
+                return current;
+            }
+            current = current.Next;
+        }
+        return null;
+    }
+
     public int? this[ulong x] {
         get { return Get(x); }
         set { Set(x, (int)value!); }
     }
-
 
     public int? Get(ulong x) {
         ulong index = hasher.Hash(x);
@@ -59,15 +69,19 @@ public class HashTable {
         }
     }
 
-
-    private LinkedListNode<(ulong, int)>? Find(ulong x, ulong index) {
-        var current = buckets[index].First;
-        while (current != null) {
-            if (current.Value.Item1 == x) {
-                return current;
-            }
-            current = current.Next;
+    
+    public void Process(IEnumerable<(ulong, int)> stream) {
+        foreach (var (x, v) in stream) {
+            Increment(x, v);
         }
-        return null;
+    }
+    public ulong SquareSum() {
+        ulong S = 0;
+        foreach (var bucket in buckets) {
+            foreach(var (_, s) in bucket) {
+                S += (ulong)s * (ulong)s;
+            }
+        }
+        return S;
     }
 }
