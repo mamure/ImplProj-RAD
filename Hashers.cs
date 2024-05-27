@@ -1,6 +1,22 @@
 using System.Numerics;
-using System.Globalization;
 
+
+public class BigRandom() {
+    private static Random rng = new();
+    public static BigInteger Get(int bits) {
+        // Generete 1 extra byte in case of rounding
+        int bytesLen = (bits + 7) / 8;
+        byte[] bytes = new byte[bytesLen];
+        rng.NextBytes(bytes);
+
+        // Remove excess bits in the extra byte
+        int excessBits = bytesLen * 8 - bits;
+        byte excessMask = (byte)(((byte)excessBits << 1) - 1);
+        bytes[bytesLen - 1] &= excessMask;
+
+        return new BigInteger(bytes);
+    }
+}
 
 public interface IHash {
     public int BitLen();
@@ -19,6 +35,7 @@ public interface IHash {
 
 public class MultiplyShiftHash : IHash {
     private readonly int l;
+    private readonly int q;
     private readonly ulong a;
 
     public MultiplyShiftHash(int l) {
@@ -26,13 +43,14 @@ public class MultiplyShiftHash : IHash {
             throw new ArgumentOutOfRangeException(nameof(l));
         }
         this.l = l;
-        a = 0x5b23e0fb16ba8143;
+        q = 64;
+        a = (ulong)BigRandom.Get(q);
     }
     public int BitLen() {
         return l;
     }
     public ulong Hash(ulong x) {
-        return (a * x) >> (64 - l);
+        return (a * x) >> (q - l);
     }
 }
 
@@ -53,8 +71,8 @@ public class MultiplyModPrime : IHash {
         mask = (1ul << l) - 1;
         q = 89;
         p = (new BigInteger(1) << q) - 1;
-        a = BigInteger.Parse("1BFAB7F9A831C0BBEDD1FAA", NumberStyles.HexNumber);
-        b = BigInteger.Parse("1029E3F5CB3358C17BCD08F", NumberStyles.HexNumber);
+        a = BigRandom.Get(q);
+        b = BigRandom.Get(q);
     }
     public int BitLen() {
         return l;
@@ -94,10 +112,10 @@ public class PolynomialModPrime : IHash {
         mask = (1ul << l) - 1;
         q = 89;
         p = (new BigInteger(1) << q) - 1;
-        a = BigInteger.Parse("0826B0099616EA28858AFF6", NumberStyles.HexNumber);
-        b = BigInteger.Parse("1A42CCF11B6E739098548E8", NumberStyles.HexNumber);
-        c = BigInteger.Parse("0C04F304420CC92641A42B3", NumberStyles.HexNumber);
-        d = BigInteger.Parse("0A5A5F338A0EE164C3E9C5E", NumberStyles.HexNumber);
+        a = BigRandom.Get(q);
+        b = BigRandom.Get(q);
+        c = BigRandom.Get(q);
+        d = BigRandom.Get(q);
     }
     public int BitLen() {
         return l;
@@ -116,11 +134,11 @@ public class PolynomialModPrime : IHash {
         
         // y = b + cx + dx^2 mod p
         y = y * x + b;
-        y += (y & p) + (y >> q);
+        y = (y & p) + (y >> q);
         
         // y = a + bx + cx^2 + dx^3 mod p
         y = y * x + a;
-        y += (y & p) + (y >> q);
+        y = (y & p) + (y >> q);
         if (y >= p) y -= p;
 
         return y;

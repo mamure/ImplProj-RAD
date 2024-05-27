@@ -34,10 +34,15 @@ public class App {
             }
         }
 
-        var stream = Generate.CreateStream(1000, 2);
+        var stream = Generate.CreateStream(1000, 10);
         var hasher = new PolynomialModPrime(12);
+        var sketch = new CountSketch(hasher);
+        sketch.Process(stream);
+        Console.WriteLine(sketch.CalculateEstimate());
         var table = new HashTable(hasher);
         Console.WriteLine(SquareSum(stream, table));
+
+
 
         return 0;
     }
