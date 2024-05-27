@@ -125,9 +125,9 @@ public class CountSketchHash<T> where T : INumber<T> {
         return gx & ((1UL << t) - 1);
     }
 
-    public ulong S(ulong x) {
+    public int S(ulong x) {
         var gx = polynomialModPrime.Hash(x);
         var temp = (double)gx / p;
-        return (ulong)(1UL - 2 * Math.Floor(temp));
+        return (int)(1UL - 2 * Math.Floor(temp));
     }
 }
