@@ -6,7 +6,7 @@ public class Generate {
         byte[] b = new byte[8];
         rnd.NextBytes(b);
         for (int i = 0; i < 8; i++) {
-            a = (a << 8) + (ulong)b[i];
+            a = (a << 8) + b[i];
         }
 
         // We demand that our random number has 30 zeros on the least

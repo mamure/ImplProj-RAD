@@ -10,8 +10,8 @@ public class App {
     }
 
     public static void Main() {
-        Benchmark.Run_1c(1000, 10, 10);
-        Benchmark.Run_3(1000, 10, 10);
-        Benchmark.Run_7_8(1000, 10, 10);
+        Benchmark.Run_1c((int)1e7, 100);
+        Benchmark.Run_3((int)1e7, 100);
+        Benchmark.Run_7_8((int)1e7, 100);
     }
 }

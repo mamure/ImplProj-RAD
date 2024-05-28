@@ -69,7 +69,7 @@ public class HashTable {
         }
     }
 
-    
+
     public void Process(IEnumerable<(ulong, int)> stream) {
         foreach (var (x, v) in stream) {
             Increment(x, v);
@@ -79,7 +79,7 @@ public class HashTable {
         ulong S = 0;
         foreach (var bucket in buckets) {
             foreach(var (_, s) in bucket) {
-                S += (ulong)s * (ulong)s;
+                S += (ulong)(s * s);
             }
         }
         return S;

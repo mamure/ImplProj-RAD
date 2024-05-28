@@ -1,9 +1,11 @@
 public class CountSketch {
     private int m;
+    private int b;
     private readonly IHash hashU4;
     private int[] sketch;
     public CountSketch(IHash hashU4) {
         this.hashU4 = hashU4;
+        b = hashU4.BigBitLen();
         m = 1 << hashU4.BitLen();
         sketch = new int[m];
         for (int i = 0; i < m; i++){
@@ -11,23 +13,22 @@ public class CountSketch {
         }
     }
 
-    private ulong h_hash(ulong x) {
-        return hashU4.Hash(x);
+    private (ulong, int) Hash_hx_sx(ulong x) {
+        var gx = hashU4.BigHash(x);
+        var hx = (ulong)(gx & (m - 1));
+        var sx = (int)(1 - 2 * (gx >> (b - 1)));
+        return (hx, sx);
     }
-    private int s_hash(ulong x) {
-        var bx = hashU4.BigHash(x) >> (hashU4.BigBitLen() - 1);
-        return (int)(1 - 2 * bx);
-    }
-
     public void Process(IEnumerable<(ulong, int)> stream){
-        foreach (var (x,d) in stream){
-            sketch[h_hash(x)] += s_hash(x) * d;
+        foreach (var (x, d) in stream){
+            var (hx, sx) = Hash_hx_sx(x);
+            sketch[hx] += sx * d;
         }
     }
     public ulong SquareSum(){
         ulong X = 0;
-        for (int y = 0; y < m; y++){
-            X += (ulong)sketch[y] * (ulong)sketch[y];
+        foreach (var xi in sketch){
+            X += (ulong)(xi * xi);
         }
         return X;
     }
