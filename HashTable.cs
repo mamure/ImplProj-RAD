@@ -1,52 +1,87 @@
-using System;
-using System.Collections.Generic;
+public class HashTable {
+    private LinkedList<(ulong, int)>[] buckets;
+    private IHash hasher;
 
-public class HashTabel {
-    private LinkedList<(ulong, T)>[] buckets;
-    private readonly int size;
-    private IHash hashFunction;
-
-    public HashTabel(int l, Func<ulong, int> hashFunction) {
-        if (l <= 0 || l >= 64) {
-            throw new ArgumentOutOfRangeException(nameof(l))
-        }
-        this.size = 1 << l;
-        this.hashFunction = hashFunction;
-        this.buckets = new LinkedList<(ulong, T)>[1 << l];
+    public HashTable(IHash hasher) {
+        this.hasher = hasher;
+        buckets = new LinkedList<(ulong, int)>[(ulong)1 << hasher.BitLen()];
         for (int i = 0; i < buckets.Length; i++) {
-            buckets[i] = new LinkedList<(ulong, T)>();
+            buckets[i] = new();
         }
     }
 
-    public T get(ulong x) {
-        int index = (int)hashFunction.Hash(x);
-        foreach ((ulong key, T value) in buckets[index]) {
-            if (key == x) {
-                return value;
+    private LinkedListNode<(ulong, int)>? Find(ulong x, ulong index) {
+        var current = buckets[index].First;
+        while (current != null) {
+            if (current.Value.Item1 == x) {
+                return current;
             }
+            current = current.Next;
         }
-        return default(T);
+        return null;
     }
 
-    public long set(ulong x, T v) {
-        int index = (int)hashFunction.Hash(x);
-        for (var node = buckets[index].First; node != null; node = node.Next) {
-            if (node.Value.Item1 == x) {
-                node.Value = (x, v);
-                return;
-            }
-        }
-        buckets[index].AddLast((x, v));
+    public int? this[ulong x] {
+        get { return Get(x); }
+        set { Set(x, (int)value!); }
     }
 
-    public long increment(ulong x, long d) {
-        int index = (int)hashFunction.Hash(x);
-        for (var node = buckets[index].First; node != null; node = node.Next) {
-            if (node.Value.Item1 == x) {
-                node.Value = (x, node.Value.Item2 + d);
-                return;
+    public int? Get(ulong x) {
+        ulong index = hasher.Hash(x);
+        var node = Find(x, index);
+        if (node != null) {
+            var (_, value) = node.Value;
+            return value;
+        }
+        return null;
+    }
+
+    public void Set(ulong x, int v) {
+        ulong index = hasher.Hash(x);
+        var node = Find(x, index);
+        if (node != null) {
+            var (key, _) = node.Value;
+            node.Value = (key, v);
+        } else {
+            buckets[index].AddLast((x, v));
+        }
+    }
+
+    public int? Pop(ulong x) {
+        ulong index = hasher.Hash(x);
+        var node = Find(x, index);
+        if (node != null) {
+            var (_, value) = node.Value;
+            buckets[index].Remove(node);
+            return value;
+        }
+        return null;
+    }
+
+    public void Increment(ulong x, int d) {
+        ulong index = hasher.Hash(x);
+        var node = Find(x, index);
+        if (node != null) {
+            var (key, value) = node.Value;
+            node.Value = (key, value + d);
+        } else {
+            buckets[index].AddLast((x, d));
+        }
+    }
+
+
+    public void Process(IEnumerable<(ulong, int)> stream) {
+        foreach (var (x, v) in stream) {
+            Increment(x, v);
+        }
+    }
+    public ulong SquareSum() {
+        ulong S = 0;
+        foreach (var bucket in buckets) {
+            foreach(var (_, s) in bucket) {
+                S += (ulong)(s * s);
             }
         }
-        buckets[index].AddLast((x, d));
+        return S;
     }
 }

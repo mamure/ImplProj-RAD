@@ -1,1 +1,3 @@
-This is the initial commit of the implementeringsprojekt :)
+# Tutorial
+
+Run `dotnet build` from the directory, then run `dotnet run` to replicate results.
