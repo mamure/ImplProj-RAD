@@ -1,9 +1,13 @@
 using System.Numerics;
 
 
-public class BigRandom() {
+public class Seeder() {
     private static Random rng = new();
-    public static BigInteger Get(int bits) {
+    public static UInt128 Random(int bits) {
+        if (bits < 0 || bits > 127) {
+            throw new ArgumentOutOfRangeException(nameof(bits));
+        }
+
         // Generete 1 extra byte in case of rounding
         int bytesLen = 1 + bits / 8;
         byte[] bytes = new byte[bytesLen];
@@ -14,7 +18,10 @@ public class BigRandom() {
         byte excessMask = (byte)(0xff >> excessBits);
         bytes[bytesLen - 1] &= excessMask;
 
-        return new BigInteger(bytes);
+        return (UInt128)new BigInteger(bytes, isUnsigned: true, isBigEndian: false);
+    }
+    public static UInt128 Mersenne(int q) {
+        return ((UInt128)1 << q) - 1;
     }
 }
 
@@ -25,8 +32,8 @@ public interface IHash {
     int BigBitLen() {
         return BitLen();
     }
-    BigInteger BigHash(ulong x) {
-        return new BigInteger(Hash(x));
+    UInt128 BigHash(ulong x) {
+        return (UInt128)Hash(x);
     }
 }
 
@@ -44,7 +51,7 @@ public class MultiplyShiftHash : IHash {
         }
         this.l = l;
         q = 64;
-        a = (ulong)BigRandom.Get(q);
+        a = (ulong)Seeder.Random(q);
     }
     public int BitLen() {
         return l;
@@ -59,9 +66,9 @@ public class MultiplyModPrime : IHash {
     private readonly int l;
     private readonly ulong mask;
     private readonly int q;
-    private readonly BigInteger p;
-    private readonly BigInteger a;
-    private readonly BigInteger b;
+    private readonly UInt128 p;
+    private readonly UInt128 a;
+    private readonly UInt128 b;
 
     public MultiplyModPrime(int l) {
         if (l <= 0 || l >= 64) {
@@ -70,9 +77,9 @@ public class MultiplyModPrime : IHash {
         this.l = l;
         mask = (1ul << l) - 1;
         q = 89;
-        p = (new BigInteger(1) << q) - 1;
-        a = BigRandom.Get(q);
-        b = BigRandom.Get(q);
+        p = Seeder.Mersenne(q);
+        a = Seeder.Random(q);
+        b = Seeder.Random(q);
     }
     public int BitLen() {
         return l;
@@ -84,9 +91,9 @@ public class MultiplyModPrime : IHash {
         // Select lower l bits
         return (ulong)(BigHash(x) & mask);
     }
-    public BigInteger BigHash(ulong x) {
+    public UInt128 BigHash(ulong x) {
         // a + bx mod p
-        var y = a + b*x;
+        var y = a + b * x;
         y = (y & p) + (y >> q);
         if (y >= p) y -= p;
         return y;
@@ -98,11 +105,11 @@ public class PolynomialModPrime : IHash {
     private readonly int l;
     private readonly ulong mask;
     private readonly int q;
-    private readonly BigInteger p;
-    private readonly BigInteger a;
-    private readonly BigInteger b;
-    private readonly BigInteger c;
-    private readonly BigInteger d;
+    private readonly UInt128 p;
+    private readonly UInt128 a;
+    private readonly UInt128 b;
+    private readonly UInt128 c;
+    private readonly UInt128 d;
 
     public PolynomialModPrime(int l) {
         if (l <= 0 || l >= 64) {
@@ -111,11 +118,11 @@ public class PolynomialModPrime : IHash {
         this.l = l;
         mask = (1ul << l) - 1;
         q = 89;
-        p = (new BigInteger(1) << q) - 1;
-        a = BigRandom.Get(q);
-        b = BigRandom.Get(q);
-        c = BigRandom.Get(q);
-        d = BigRandom.Get(q);
+        p = Seeder.Mersenne(q);
+        a = Seeder.Random(q);
+        b = Seeder.Random(q);
+        c = Seeder.Random(q);
+        d = Seeder.Random(q);
     }
     public int BitLen() {
         return l;
@@ -127,7 +134,7 @@ public class PolynomialModPrime : IHash {
         // select lower 64 bits
         return (ulong)(BigHash(x) & mask);
     }
-    public BigInteger BigHash(ulong x) {
+    public UInt128 BigHash(ulong x) {
         // y = c + dx mod p
         var y = d * x + c;
         y = (y & p) + (y >> q);

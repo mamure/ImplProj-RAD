@@ -103,7 +103,7 @@ def plot_8b(file, title):
     plot_line_and_stdev(df, "Xtime", "red", label="X: Count Sketch", linewidth=2)
     plt.xlabel('Bit Size')
     plt.ylabel('Time [ms]') 
-    plt.yscale('log', base=2)
+    #plt.yscale('log', base=2)
     plt.title(f"{title}\n{df['i'].max() + 1} experiments per bit size. Stream size of {df['size'][0]:.2e}")
     plt.legend()
     plt.grid(True)

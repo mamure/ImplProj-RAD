@@ -1,17 +1,24 @@
-public class Generate {
-    public static IEnumerable<(ulong, int)> CreateStream(int n , int l) {
-        // We generate a random uint64 number.
-        Random rnd = new();
-        ulong a = 0;
+public class Generator {
+    private Random rnd;
+    private ulong seed;
+    private int n;
+    private int l;
+    public Generator(int n , int l) {
+        this.n = n;
+        this.l = l;
+        rnd = new();
+        seed = 0;
         byte[] b = new byte[8];
         rnd.NextBytes(b);
         for (int i = 0; i < 8; i++) {
-            a = (a << 8) + b[i];
+            seed = (seed << 8) + b[i];
         }
+    }
 
+    public IEnumerable<(ulong, int)> CreateStream() {
         // We demand that our random number has 30 zeros on the least
         // significant bits and then a one.
-        a = (a | ((1ul << 31) - 1ul)) ^ ((1ul << 30) - 1ul);
+        var a = (seed | ((1ul << 31) - 1ul)) ^ ((1ul << 30) - 1ul);
         
         ulong x = 0;
         for (int i = 0; i < n/3; i++) {
