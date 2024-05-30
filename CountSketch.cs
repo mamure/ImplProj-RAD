@@ -30,10 +30,10 @@ public class CountSketch {
             sketch[hx] += sx * d;
         }
     }
-    public UInt128 SquareSum(){
-        UInt128 X = 0;
+    public Int128 SquareSum(){
+        Int128 X = 0;
         foreach (var xi in sketch){
-            var t = (UInt128)xi;
+            var t = (Int128)xi;
             X += t * t;
         }
         return X;

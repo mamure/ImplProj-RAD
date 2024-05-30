@@ -1,10 +1,10 @@
 public class App {
-    public static UInt128 TableSquareSum(IEnumerable<(ulong, int)> stream, HashTable table) {
+    public static Int128 TableSquareSum(IEnumerable<(ulong, int)> stream, HashTable table) {
         table.Process(stream);
         return table.SquareSum();
     }
 
-    public static UInt128 SketchSquareSum(IEnumerable<(ulong, int)> stream, CountSketch sketch) {
+    public static Int128 SketchSquareSum(IEnumerable<(ulong, int)> stream, CountSketch sketch) {
         sketch.Process(stream);
         return sketch.SquareSum();
     }

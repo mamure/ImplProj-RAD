@@ -75,11 +75,11 @@ public class HashTable {
             Increment(x, v);
         }
     }
-    public UInt128 SquareSum() {
-        UInt128 S = 0;
+    public Int128 SquareSum() {
+        Int128 S = 0;
         foreach (var bucket in buckets) {
             foreach(var (_, si) in bucket) {
-                var t = (UInt128)si;
+                var t = (Int128)si;
                 S += t * t;
             }
         }
