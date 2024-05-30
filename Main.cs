@@ -32,8 +32,8 @@ public class App {
         }
         
         // NOTE: The size must be larger than 2^max_bits
-        Benchmark.Run_1c((int)1e4, counts, max_bits);
-        Benchmark.Run_3((int)1e4, counts, max_bits);
-        Benchmark.Run_7_8((int)1e4, counts, max_bits);
+        Benchmark.Run_1c((int)1e7, counts, max_bits);
+        Benchmark.Run_3((int)1e7, counts, max_bits);
+        Benchmark.Run_7_8((int)1e7, counts, max_bits);
     }
 }
