@@ -9,7 +9,7 @@ public class Benchmark {
         }
 
         Console.WriteLine($"Benchmarking opg 1c");
-        var csv = "bits,i,size,MSH,MMP,PMP\n";
+        var csv = "bits,i,size,MSH,t1,MMP,t2,PMP,t3\n";
         for(int bits = 1; bits <= max_bits; bits++) {
             var count = counts[bits - 1];
             var gen = new Generator(size, bits);
@@ -35,7 +35,7 @@ public class Benchmark {
                     }
                     var STime = timer.Elapsed.TotalMilliseconds;
                     var STimePretty = STime.ToString(CultureInfo.InvariantCulture);
-                    csv += $",{STimePretty}";
+                    csv += $",{STimePretty},{sum}";
                 }
                 csv += "\n";
             }

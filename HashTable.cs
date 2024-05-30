@@ -4,7 +4,7 @@ public class HashTable {
 
     public HashTable(IHash hasher) {
         this.hasher = hasher;
-        buckets = new LinkedList<(ulong, int)>[(ulong)1 << hasher.BitLen()];
+        buckets = new LinkedList<(ulong, int)>[1ul << hasher.BitLen()];
         for (int i = 0; i < buckets.Length; i++) {
             buckets[i] = new();
         }
@@ -75,11 +75,12 @@ public class HashTable {
             Increment(x, v);
         }
     }
-    public ulong SquareSum() {
-        ulong S = 0;
+    public UInt128 SquareSum() {
+        UInt128 S = 0;
         foreach (var bucket in buckets) {
-            foreach(var (_, s) in bucket) {
-                S += (ulong)(s * s);
+            foreach(var (_, si) in bucket) {
+                var t = (UInt128)si;
+                S += t * t;
             }
         }
         return S;

@@ -1,12 +1,10 @@
-using System.Runtime.CompilerServices;
-
 public class App {
-    public static ulong TableSquareSum(IEnumerable<(ulong, int)> stream, HashTable table) {
+    public static UInt128 TableSquareSum(IEnumerable<(ulong, int)> stream, HashTable table) {
         table.Process(stream);
         return table.SquareSum();
     }
 
-    public static ulong SketchSquareSum(IEnumerable<(ulong, int)> stream, CountSketch sketch) {
+    public static UInt128 SketchSquareSum(IEnumerable<(ulong, int)> stream, CountSketch sketch) {
         sketch.Process(stream);
         return sketch.SquareSum();
     }
