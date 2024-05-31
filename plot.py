@@ -103,10 +103,7 @@ def plot_8ap(file, title):
     df['X'] = df['X'].astype('float64')
     df['S'] = df['S'].astype('float64')
 
-    df['X2'] = df["X"] - df["S"]
-    df['S2'] = df["S"] - df["S"]
-    df['square error'] = df["X2"] ** 2
-    df['ss'] = df["S"] ** 2
+    df['square error'] = (df["X"] - df["S"]) ** 2
     group = df.groupby("bits")
     mse = group['square error'].mean()
     perr = np.sqrt(mse) / group['S'].mean() * 100
