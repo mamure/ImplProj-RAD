@@ -3,6 +3,7 @@ using System.Globalization;
 
 
 public class Benchmark {
+    const int MIN_BITS = 4;
     public static void Run_1c(int size, List<int> counts, int max_bits) {
         if (counts.Count < max_bits) {
             throw new ArgumentException(nameof(counts));
@@ -10,7 +11,7 @@ public class Benchmark {
 
         Console.WriteLine($"Benchmarking opg 1c");
         var csv = "bits,i,size,MSH,t1,MMP,t2,PMP,t3\n";
-        for(int bits = 1; bits <= max_bits; bits++) {
+        for(int bits = MIN_BITS; bits <= max_bits; bits++) {
             var count = counts[bits - 1];
             var gen = new Generator(size, bits);
             var benches = new List<IHash> {
@@ -51,7 +52,7 @@ public class Benchmark {
 
         Console.WriteLine($"Benchmarking opg 3");
         var csv = "bits,i,size,MSH,S_MSH,MMP,S_MMP,PMP,S_PMP\n";
-        for(int bits = 1; bits <= max_bits; bits++) {
+        for(int bits = MIN_BITS; bits <= max_bits; bits++) {
             var count = counts[bits - 1];
             var gen = new Generator(size, bits);
             var benches = new List<IHash> {
@@ -91,7 +92,7 @@ public class Benchmark {
 
         Console.WriteLine($"Benchmarking opg 7/8");
         var csv = "bits,i,size,S,X,Stime,Xtime\n";
-        for(int bits = 1; bits <= max_bits; bits++) {
+        for(int bits = MIN_BITS; bits <= max_bits; bits++) {
             var count = counts[bits - 1];
             var gen = new Generator(size, bits);
             for(int i = 0; i < count; i++) {

@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+from decimal import Decimal
 import numpy as np
 pd.options.display.float_format = '{:.2e}'.format
 
@@ -20,6 +21,7 @@ def plot_line_and_mse(df, ref, est, color, **kwargs):
     mean = group[est].mean()
     mse = group['square error'].mean()
     bits = group['bits'].first()
+    print(df['square error'])
 
     plt.xticks(range(1, bits.max() + 1, 2))
     plt.plot(bits, mean, color=color, **kwargs)
@@ -85,11 +87,50 @@ def plot_7(file, title, bits, median_size):
 def plot_8a(file, title):
     plt.figure(figsize=(10, 7))
     df = pd.read_csv(file)
-    plot_line_and_mse(df, "S", "X", "red", label="X: Count Sketch", linewidth=3)
-    plot_line_and_stdev(df, "S", "blue", label="S: Hash Table", linewidth=2, linestyle="dashed")
+    df['X'] = df['X'].astype('float64')
+    df['S'] = df['S'].astype('float64')
+
+    df['X2'] = df["X"] - df["S"]
+    df['S2'] = df["S"] - df["S"]
+    df['square error'] = df["X2"] ** 2
+    group = df.groupby("bits")
+    mean = group['X2'].mean()
+    mse = group['square error'].mean()
+    bits = group['bits'].first()
+
+    plt.xticks(range(1, bits.max() + 1, 2))
+    plt.plot(bits, mean, color="red", label="X: Count Sketch")
+    plt.fill_between(bits, mean + mse, mean, color="red", alpha=0.2)
+    plot_line_and_stdev(df, "S2", "blue", label="S: Hash Table", linewidth=2, linestyle="dashed")
+
     plt.xlabel('Bit Size')
     plt.ylabel('Square Sum')
-    plt.yscale('log', base=2)
+    plt.title(f"{title}\n{df['i'].max() + 1} experiments per bit size. Stream size of {df['size'][0]:.2e}")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+def plot_8ap(file, title):
+    plt.figure(figsize=(10, 7))
+    df = pd.read_csv(file)
+    df['X'] = df['X'].astype('float64')
+    df['S'] = df['S'].astype('float64')
+
+    df['X2'] = df["X"] - df["S"]
+    df['S2'] = df["S"] - df["S"]
+    df['square error'] = df["X2"] ** 2
+    df['ss'] = df["S"] ** 2
+    group = df.groupby("bits")
+    mse = group['square error'].mean()
+    perr = np.sqrt(mse) / group['S'].mean() * 100
+    bits = group['bits'].first()
+
+    plt.xticks(range(1, bits.max() + 1, 2))
+    plt.yticks(range(0,100, 5))
+    plt.plot(bits, perr, color="red", label="X: Count Sketch")
+    plt.xlabel('Bit Size')
+    plt.ylabel('Percent Difference')
+    #plt.yscale('log', base=2)
     plt.title(f"{title}\n{df['i'].max() + 1} experiments per bit size. Stream size of {df['size'][0]:.2e}")
     plt.legend()
     plt.grid(True)
@@ -103,7 +144,7 @@ def plot_8b(file, title):
     plot_line_and_stdev(df, "Xtime", "red", label="X: Count Sketch", linewidth=2)
     plt.xlabel('Bit Size')
     plt.ylabel('Time [ms]') 
-    #plt.yscale('log', base=2)
+    plt.yscale('log', base=2)
     plt.title(f"{title}\n{df['i'].max() + 1} experiments per bit size. Stream size of {df['size'][0]:.2e}")
     plt.legend()
     plt.grid(True)
@@ -119,5 +160,6 @@ plot_7(
     11
 )
 plot_8a("opg_7_8.csv", "MSE between Square Sum calculated using a Hash Table versus a Count Sketch \nBoth backed by 4-universal Polynomial Mod Prime")
+plot_8ap("opg_7_8.csv", "Relative Error between Square Sum calculated using a Hash Table versus a Count Sketch \nBoth backed by 4-universal Polynomial Mod Prime")
 plot_8b("opg_7_8.csv", "Time to calculate Square Sum for a Hash Table versus a Count Sketch \nBoth backed by 4-universal Polynomial Mod Prime")
 
