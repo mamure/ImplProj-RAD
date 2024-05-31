@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-from decimal import Decimal
 import numpy as np
 pd.options.display.float_format = '{:.2e}'.format
 
@@ -14,18 +13,6 @@ def plot_line_and_stdev(df, column, color, **kwargs):
     plt.xticks(range(1, bits.max() + 1, 2))
     plt.plot(bits, mean, color=color, **kwargs)
     plt.fill_between(bits, mean - stdev, mean + stdev, color=color, alpha=0.2)
-
-def plot_line_and_mse(df, ref, est, color, **kwargs):
-    df['square error'] = (df[est] - df[ref]) ** 2
-    group = df.groupby("bits")
-    mean = group[est].mean()
-    mse = group['square error'].mean()
-    bits = group['bits'].first()
-    print(df['square error'])
-
-    plt.xticks(range(1, bits.max() + 1, 2))
-    plt.plot(bits, mean, color=color, **kwargs)
-    plt.fill_between(bits, mean + mse, mean, color=color, alpha=0.2)
 
 
 def plot_1c_or_3(file, title):
@@ -130,7 +117,6 @@ def plot_8ap(file, title):
     plt.plot(bits, perr, color="red", label="X: Count Sketch")
     plt.xlabel('Bit Size')
     plt.ylabel('Percent Difference')
-    #plt.yscale('log', base=2)
     plt.title(f"{title}\n{df['i'].max() + 1} experiments per bit size. Stream size of {df['size'][0]:.2e}")
     plt.legend()
     plt.grid(True)
